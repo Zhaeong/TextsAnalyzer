@@ -93,7 +93,7 @@ public class ContactActivity extends AppCompatActivity {
     protected int getSMSReceived()
     {
         final Uri SMS_INBOX = Uri.parse("content://sms/inbox");
-        Cursor c = getContentResolver().query(SMS_INBOX, null, "address = " + ContactNumber, null, null);
+        Cursor c = getContentResolver().query(SMS_INBOX, null, "address = " + "'" + ContactNumber + "'", null, null);
         int numMsgs = c.getCount();
         c.close();
         return numMsgs;
