@@ -98,17 +98,19 @@ public class customDBHelper extends SQLiteOpenHelper {
         return false;
     }
 
-    public String getPost(String number)
+    public ContactObj getContact(Long number)
     {
         SQLiteDatabase db = this.getReadableDatabase();
-        String sqlQuery = "select * from " + CONTACTS_TABLE_NAME + " where " + CONTACTS_COL_NUMBER + " = " + number;
+        String sqlQuery = "select * from " + CONTACTS_TABLE_NAME + " where " + CONTACTS_COL_ID + " = " + number;
         Cursor result = db.rawQuery( sqlQuery, null );
         if(result.getCount() == 1) {
             result.moveToFirst();
             String contactName = result.getString(result.getColumnIndex(CONTACTS_COL_NAME));
+            String contactNum = result.getString(result.getColumnIndex(CONTACTS_COL_NUMBER));
 
+            ContactObj conObj = new ContactObj(number, contactName, contactNum);
             result.close();
-            return contactName;
+            return conObj;
         }
         else
         {

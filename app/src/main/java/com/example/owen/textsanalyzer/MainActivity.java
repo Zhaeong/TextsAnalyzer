@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog pDialog;
 
     final int REQUEST_CODE_ASK_PERMISSIONS = 123;
+    public static final String ContactId = "ContactId";
     //Device database variables
     public customDBHelper myDeviceDatabase;
 
@@ -77,8 +78,6 @@ public class MainActivity extends AppCompatActivity {
 
                 } else {
 
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
                 }
             }
         }
@@ -94,10 +93,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                //Intent intent = new Intent(MainActivity.this, AddTaskView.class);
-                //intent.putExtra(TASK_ID, id);
-
-                //startActivityForResult(intent, 1);
+                Intent intent = new Intent(MainActivity.this, ContactActivity.class);
+                intent.putExtra(ContactId, id);
+                startActivity(intent);
 
             }
         });
