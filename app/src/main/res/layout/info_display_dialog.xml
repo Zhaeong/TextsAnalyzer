@@ -20,7 +20,7 @@
         android:id="@+id/dialogMsg"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="21dp"
+        android:layout_marginTop="12dp"
         android:layout_weight="0.14"
         android:text="Hellowlow"
         android:textAlignment="center"
@@ -40,18 +40,105 @@
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="11dp"
+        android:text="Number of Messages Received:"
         android:layout_below="@+id/dialogMsg"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="12dp"
-        android:text="Number of Messages Received:" />
+        android:layout_alignRight="@+id/heartImg"
+        android:layout_alignEnd="@+id/heartImg" />
 
     <TextView
         android:id="@+id/messagesRec"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView2"
+        android:layout_alignStart="@+id/textView2"
         android:layout_below="@+id/textView2"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="12dp"
-        android:text="TextView" />
+        android:text="TextView"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Number of Messages Sent:"
+        android:layout_marginTop="11dp"
+        android:layout_below="@+id/messagesRec"
+        android:layout_alignLeft="@+id/messagesRec"
+        android:layout_alignStart="@+id/messagesRec" />
+
+    <TextView
+        android:id="@+id/messagesSent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView4"
+        android:layout_alignStart="@+id/textView4"
+        android:layout_below="@+id/textView4"
+        android:text="TextView"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Average Length of Received Messages:"
+        android:layout_below="@+id/messagesSent"
+        android:layout_alignLeft="@+id/messagesSent"
+        android:layout_alignStart="@+id/messagesSent"
+        android:layout_marginTop="12dp" />
+
+    <TextView
+        android:id="@+id/avgMsgRec"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView6"
+        android:layout_alignStart="@+id/textView6"
+        android:layout_below="@+id/textView6"
+        android:text="avgMsgRec"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textView8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="Average Length of Sent Messages:"
+        android:layout_below="@+id/avgMsgRec"
+        android:layout_alignLeft="@+id/textView6"
+        android:layout_alignStart="@+id/textView6" />
+
+    <TextView
+        android:id="@+id/avgMsgSent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView8"
+        android:layout_alignStart="@+id/textView8"
+        android:layout_below="@+id/textView8"
+        android:text="TextView"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/chanceOfLike"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/avgMsgSent"
+        android:layout_alignStart="@+id/avgMsgSent"
+        android:layout_below="@+id/avgMsgSent"
+        android:layout_marginTop="22dp"
+        android:text="TextView"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/changceOfLikeMsg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/chanceOfLike"
+        android:layout_alignStart="@+id/chanceOfLike"
+        android:layout_below="@+id/chanceOfLike"
+        android:text="Chance of liking you." />
 
 </RelativeLayout>

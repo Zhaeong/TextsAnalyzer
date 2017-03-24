@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">TextsAnalyzer</string>
+    <string name="refresh_list">Refresh</string>
 </resources>
