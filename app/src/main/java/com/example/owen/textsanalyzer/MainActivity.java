@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
                     == PackageManager.PERMISSION_GRANTED) {
 
             getContacts();
+
         }
         else {
 
@@ -81,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED
                         && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                     getContacts();
+
 
                 } else {
 
@@ -116,6 +118,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
 
+                myDeviceDatabase.deleteAllContacts();
+
                 String[] projection= { "DISTINCT address"};
 
                 Uri uriSMSURI = Uri.parse("content://sms/inbox");
@@ -124,17 +128,23 @@ public class MainActivity extends AppCompatActivity {
                     String address = cur.getString(cur.getColumnIndex("address"));
 
                     String ContactName = getContactName(MainActivity.this, address);
+                    myDeviceDatabase.addContact(ContactName, address);
 
-                    if(!myDeviceDatabase.doesContactExist(address)) {
-                        myDeviceDatabase.addContact(ContactName, address);
-                    }
                 }
                 cur.close();
                 hideDialog();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        populateList();
+                    }
+                });
+
             }
         }).start();
 
-        populateList();
+
 
     }
 

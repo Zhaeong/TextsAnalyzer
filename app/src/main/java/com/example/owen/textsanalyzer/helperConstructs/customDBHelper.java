@@ -118,6 +118,13 @@ public class customDBHelper extends SQLiteOpenHelper {
         }
     }
 
+    public Integer deleteContact (String number) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(CONTACTS_TABLE_NAME,
+                CONTACTS_COL_NUMBER + " = ? ",
+                new String[] { number });
+    }
+
     public void deleteAllContacts()
     {
         SQLiteDatabase db = this.getWritableDatabase();
