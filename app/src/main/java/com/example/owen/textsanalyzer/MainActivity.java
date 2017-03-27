@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
     //Device database variables
     public customDBHelper myDeviceDatabase;
 
+    public boolean onLoadGetInfo = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,8 +62,13 @@ public class MainActivity extends AppCompatActivity {
                 &&
             ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_SMS)
                     == PackageManager.PERMISSION_GRANTED) {
+            if(onLoadGetInfo)
+            {
+                getContacts();
+                onLoadGetInfo = false;
+            }
 
-            getContacts();
+
 
         }
         else {
@@ -81,7 +88,11 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED
                         && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                    getContacts();
+                    if(onLoadGetInfo)
+                    {
+                        getContacts();
+                        onLoadGetInfo = false;
+                    }
 
 
                 } else {
@@ -118,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
 
-                myDeviceDatabase.deleteAllContacts();
+                myDeviceDatabase.deleteAllItemsInTable(customDBHelper.CONTACTS_TABLE_NAME);
 
                 String[] projection= { "DISTINCT address"};
 
@@ -127,11 +138,54 @@ public class MainActivity extends AppCompatActivity {
                 while (cur.moveToNext()) {
                     String address = cur.getString(cur.getColumnIndex("address"));
 
-                    String ContactName = getContactName(MainActivity.this, address);
-                    myDeviceDatabase.addContact(ContactName, address);
+                    String numOnlyAddress = myDeviceDatabase.getNumericOnly(address);
+
+                    String ContactName = getContactName(MainActivity.this, numOnlyAddress);
+                    myDeviceDatabase.addContact(ContactName, numOnlyAddress);
 
                 }
                 cur.close();
+
+                myDeviceDatabase.deleteAllItemsInTable(customDBHelper.TEXTS_TABLE_NAME);
+
+                Uri URLmessage = Uri.parse("content://sms/");
+
+                Cursor c = getContentResolver().query(URLmessage, null, null, null, null);
+
+                int totalSMS = c.getCount();
+
+                if (c.moveToFirst()) {
+                    for (int i = 0; i < totalSMS; i++) {
+
+                        String SMS_id = c.getString(c.getColumnIndexOrThrow("_id"));
+                        String SMS_address = c.getString(c
+                                .getColumnIndexOrThrow("address"));
+
+                        String address_num = myDeviceDatabase.getNumericOnly(SMS_address);
+                        String SMS_body = c.getString(c.getColumnIndexOrThrow("body"));
+                        String SMS_read = c.getString(c.getColumnIndex("read"));
+                        String SMS_date = c.getString(c.getColumnIndexOrThrow("date"));
+
+                        String SMS_type;
+                        if (c.getString(c.getColumnIndexOrThrow("type")).contains("1")) {
+                            SMS_type = "inbox";
+                        } else {
+                            SMS_type = "sent";
+                        }
+
+                        myDeviceDatabase.addText(SMS_id, address_num, SMS_body, SMS_read, SMS_date, SMS_type);
+                        c.moveToNext();
+                    }
+                }
+                // else {
+                // throw new RuntimeException("You have no SMS");
+                // }
+                c.close();
+
+                myDeviceDatabase.printAllItemsInTable(customDBHelper.TEXTS_TABLE_NAME);
+
+
+
                 hideDialog();
 
                 runOnUiThread(new Runnable() {
@@ -204,8 +258,8 @@ public class MainActivity extends AppCompatActivity {
     {
         int smsRec;
         int smsSent;
-        int smsRecAvg = -1;
-        int smsSentAvg = -1;
+        int smsRecAvg;
+        int smsSentAvg;
 
         PopUpDialog = new Dialog(MainActivity.this);
         PopUpDialog.setContentView(R.layout.info_display_dialog);
@@ -224,7 +278,10 @@ public class MainActivity extends AppCompatActivity {
 
         final TextView SMSReceived = (TextView) PopUpDialog.findViewById(R.id.messagesRec);
         smsRec = getSMSNum("inbox", ContactNumber);
-        SMSReceived.setText(Integer.toString(smsRec));
+
+        int smsRecDate = myDeviceDatabase.getSMSReceivedfromNumber(ContactNumber);
+
+        SMSReceived.setText(Integer.toString(smsRecDate));
         SMSReceived.setVisibility(View.INVISIBLE);
 
         SMSReceived.postDelayed(new Runnable() {
@@ -236,7 +293,10 @@ public class MainActivity extends AppCompatActivity {
 
         final TextView SMSSent = (TextView) PopUpDialog.findViewById(R.id.messagesSent);
         smsSent = getSMSNum("sent", ContactNumber);
-        SMSSent.setText(Integer.toString(smsSent));
+
+        int smsSendDate = myDeviceDatabase.getSMSSentfromNumber(ContactNumber);
+
+        SMSSent.setText(Integer.toString(smsSendDate));
         SMSSent.setVisibility(View.INVISIBLE);
 
         SMSSent.postDelayed(new Runnable() {
@@ -302,8 +362,27 @@ public class MainActivity extends AppCompatActivity {
     protected int getSMSNum(String boxType, String ContactNumber)
     {
         final Uri SMS_INBOX = Uri.parse("content://sms/" + boxType);
-        Cursor c = getContentResolver().query(SMS_INBOX, null, "address = " + "'" + ContactNumber + "'", null, null);
+        Cursor c = getContentResolver().query(SMS_INBOX, null, "address LIKE " + "'%" + ContactNumber + "%'", null, null);
         int numMsgs = c.getCount();
+
+        if (c.moveToFirst()) {
+            for (int i = 0; i < numMsgs; i++) {
+
+
+                String sid = c.getString(c.getColumnIndexOrThrow("_id"));
+                String saddress = c.getString(c
+                        .getColumnIndexOrThrow("address"));
+                String sbody = c.getString(c.getColumnIndexOrThrow("body"));
+                String sperson = c.getString(c.getColumnIndexOrThrow("person"));
+                String sread = c.getString(c.getColumnIndex("read"));
+                String sdate = c.getString(c.getColumnIndexOrThrow("date"));
+
+
+
+                c.moveToNext();
+            }
+        }
+
         c.close();
         return numMsgs;
     }
@@ -315,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
         String[] projection= { "AVG(Length(body))"};
 
         Uri uriSMSURI = Uri.parse("content://sms/"+boxType);
-        Cursor cur = getContentResolver().query(uriSMSURI, projection, "address = " + "'" + ContactNumber + "'", null, null);
+        Cursor cur = getContentResolver().query(uriSMSURI, projection, "address LIKE " + "'%" + ContactNumber + "%'", null, null);
 
 
         while (cur.moveToNext()) {

@@ -12,7 +12,7 @@ public class customDBHelper extends SQLiteOpenHelper {
     private static customDBHelper sDeviceInternalDB;
 
     public static final String DATABASE_NAME = "SMSContacts.db";
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
 
 
     public static final String CONTACTS_TABLE_NAME = "CONTACTS";
@@ -32,6 +32,35 @@ public class customDBHelper extends SQLiteOpenHelper {
                     " TEXT " +
                     " )";
 
+
+    public static final String TEXTS_TABLE_NAME = "TEXTS";
+
+    public static final String TEXTS_COL_ID = "_id";
+    public static final String TEXTS_COL_TEXTID = "TextID";
+    public static final String TEXTS_COL_ADDRESS = "Address";
+    public static final String TEXTS_COL_BODY = "Body";
+    public static final String TEXTS_COL_READ = "Read";
+    public static final String TEXTS_COL_DATE = "Date";
+    public static final String TEXTS_COL_TYPE = "Type";
+
+    public static final String TABLE_CREATE_TEXTS =
+            "CREATE TABLE " +
+                    TEXTS_TABLE_NAME +
+                    "( " + TEXTS_COL_ID + " INTEGER PRIMARY KEY, " +
+                    TEXTS_COL_TEXTID +
+                    " TEXT, " +
+                    TEXTS_COL_ADDRESS +
+                    " TEXT, " +
+                    TEXTS_COL_BODY +
+                    " TEXT, " +
+                    TEXTS_COL_READ +
+                    " TEXT, " +
+                    TEXTS_COL_DATE +
+                    " TEXT, " +
+                    TEXTS_COL_TYPE +
+                    " TEXT " +
+                    " )";
+
     public customDBHelper(Context context) {
         super(context, DATABASE_NAME , null, DATABASE_VERSION);
     }
@@ -39,12 +68,14 @@ public class customDBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(TABLE_CREATE_CONTACTS);
+        db.execSQL(TABLE_CREATE_TEXTS);
 
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + CONTACTS_TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + TEXTS_TABLE_NAME);
         onCreate(db);
     }
 
@@ -71,7 +102,7 @@ public class customDBHelper extends SQLiteOpenHelper {
     }
 
     //
-    //Posts Functions
+    //Contacts Functions
     //
 
     public long addContact (String name, String number) {
@@ -125,10 +156,63 @@ public class customDBHelper extends SQLiteOpenHelper {
                 new String[] { number });
     }
 
-    public void deleteAllContacts()
+    public void deleteAllItemsInTable(String table)
     {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM "+ CONTACTS_TABLE_NAME);
+        db.execSQL("DELETE FROM "+ table);
+    }
+
+
+
+    //
+    //Texts Functions
+    //
+
+    public long addText (String TextId, String address, String body,String read,String date,String type) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(TEXTS_COL_TEXTID, TextId);
+        contentValues.put(TEXTS_COL_ADDRESS, address);
+        contentValues.put(TEXTS_COL_BODY, body);
+        contentValues.put(TEXTS_COL_READ, read);
+        contentValues.put(TEXTS_COL_DATE, date);
+        contentValues.put(TEXTS_COL_TYPE, type);
+
+
+        return db.insert(TEXTS_TABLE_NAME, null, contentValues);
+    }
+
+    public int getSMSReceivedfromNumber(String number)
+    {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String NumOnly = getNumericOnly(number);
+
+        String sqlQuery = "select * from " + TEXTS_TABLE_NAME + " where " + TEXTS_COL_ADDRESS + " LIKE " + "'%" + NumOnly + "%'"
+                + " AND " + TEXTS_COL_TYPE + " = 'inbox'";
+        Cursor result = db.rawQuery( sqlQuery, null );
+
+        int numSMS = result.getCount();
+        result.close();
+        return numSMS;
+    }
+
+    public int getSMSSentfromNumber(String number)
+    {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String NumOnly = getNumericOnly(number);
+
+        String sqlQuery = "select * from " + TEXTS_TABLE_NAME + " where " + TEXTS_COL_ADDRESS + " LIKE " + "'%" + NumOnly + "%'"
+                + " AND " + TEXTS_COL_TYPE + " = 'sent'";
+        Cursor result = db.rawQuery( sqlQuery, null );
+        int numSMS = result.getCount();
+        result.close();
+        return numSMS;
     }
 
     public void printAllItemsInTable(String tableName)
@@ -157,6 +241,25 @@ public class customDBHelper extends SQLiteOpenHelper {
             res.close();
         }
 
+    }
+
+    public String getNumericOnly(String inputString)
+    {
+        if (inputString == null) {
+            return null;
+        }
+
+        StringBuilder strBuff = new StringBuilder();
+        char c;
+
+        for (int i = 0; i < inputString.length() ; i++) {
+            c = inputString.charAt(i);
+
+            if (Character.isDigit(c)) {
+                strBuff.append(c);
+            }
+        }
+        return strBuff.toString();
     }
 
 }
