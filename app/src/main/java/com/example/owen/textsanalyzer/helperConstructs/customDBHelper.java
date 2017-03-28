@@ -5,11 +5,17 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.telephony.PhoneNumberUtils;
 import android.util.Log;
+
+import java.util.Locale;
 
 public class customDBHelper extends SQLiteOpenHelper {
 
     private static customDBHelper sDeviceInternalDB;
+
+    public static boolean FirstPassContactSync = true;
 
     public static final String DATABASE_NAME = "SMSContacts.db";
     public static final int DATABASE_VERSION = 2;
@@ -89,7 +95,6 @@ public class customDBHelper extends SQLiteOpenHelper {
         }
         return sDeviceInternalDB;
     }
-
 
     //
     //General Functions
@@ -184,15 +189,16 @@ public class customDBHelper extends SQLiteOpenHelper {
         return db.insert(TEXTS_TABLE_NAME, null, contentValues);
     }
 
-    public int getSMSReceivedfromNumber(String number)
+    public int getSMSFromNumber(String number, String InboxOrSent)
     {
 
         SQLiteDatabase db = this.getReadableDatabase();
 
         String NumOnly = getNumericOnly(number);
+        String MatchingNum = PhoneNumberUtils.toCallerIDMinMatch(number);
 
-        String sqlQuery = "select * from " + TEXTS_TABLE_NAME + " where " + TEXTS_COL_ADDRESS + " LIKE " + "'%" + NumOnly + "%'"
-                + " AND " + TEXTS_COL_TYPE + " = 'inbox'";
+        String sqlQuery = "select * from " + TEXTS_TABLE_NAME + " where " + TEXTS_COL_ADDRESS + " LIKE " + "'%" + MatchingNum + "%'"
+                + " AND " + TEXTS_COL_TYPE + " = '" + InboxOrSent +"'";
         Cursor result = db.rawQuery( sqlQuery, null );
 
         int numSMS = result.getCount();
@@ -200,16 +206,42 @@ public class customDBHelper extends SQLiteOpenHelper {
         return numSMS;
     }
 
-    public int getSMSSentfromNumber(String number)
+    public int testfunction()
     {
 
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String NumOnly = getNumericOnly(number);
+        String sqlQuery = "select * from " + TEXTS_TABLE_NAME + " where " + TEXTS_COL_BODY + " LIKE " + "'%" + "u can take it back" + "%'";
 
-        String sqlQuery = "select * from " + TEXTS_TABLE_NAME + " where " + TEXTS_COL_ADDRESS + " LIKE " + "'%" + NumOnly + "%'"
-                + " AND " + TEXTS_COL_TYPE + " = 'sent'";
         Cursor result = db.rawQuery( sqlQuery, null );
+        result.moveToFirst();
+
+        String addresss = result.getString(result.getColumnIndex(TEXTS_COL_ADDRESS));
+        String body = result.getString(result.getColumnIndex(TEXTS_COL_BODY));
+
+        if (PhoneNumberUtils.compare("+16476868599", "6476868599")) {
+            Log.i("save", "is same");
+        }
+
+        if (PhoneNumberUtils.compare("+16476868599", "+1-647-686-8599")) {
+            Log.i("save", "is same");
+        }
+
+        String number1 = "6476868599";
+        String number1Strip = PhoneNumberUtils.getStrippedReversed (number1);
+        String number1StripcA1 = PhoneNumberUtils.toCallerIDMinMatch (number1);
+
+
+        String number2 = "647-686-8599";
+        String number2Strip = PhoneNumberUtils.getStrippedReversed (number2);
+        String number1StripcA2 = PhoneNumberUtils.toCallerIDMinMatch (number2);
+
+
+        String number3 = "+16476868599";
+        String number3Strip = PhoneNumberUtils.getStrippedReversed (number3);
+        String number1StripcA3 = PhoneNumberUtils.toCallerIDMinMatch (number3);
+
+
         int numSMS = result.getCount();
         result.close();
         return numSMS;

@@ -15,6 +15,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -62,14 +63,12 @@ public class MainActivity extends AppCompatActivity {
                 &&
             ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_SMS)
                     == PackageManager.PERMISSION_GRANTED) {
-            if(onLoadGetInfo)
+
+            if(customDBHelper.FirstPassContactSync)
             {
                 getContacts();
-                onLoadGetInfo = false;
+                customDBHelper.FirstPassContactSync = false;
             }
-
-
-
         }
         else {
 
@@ -88,10 +87,10 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED
                         && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                    if(onLoadGetInfo)
+                    if(customDBHelper.FirstPassContactSync)
                     {
                         getContacts();
-                        onLoadGetInfo = false;
+                        customDBHelper.FirstPassContactSync = false;
                     }
 
 
@@ -161,7 +160,9 @@ public class MainActivity extends AppCompatActivity {
                         String SMS_address = c.getString(c
                                 .getColumnIndexOrThrow("address"));
 
-                        String address_num = myDeviceDatabase.getNumericOnly(SMS_address);
+                        //String address_num = myDeviceDatabase.getNumericOnly(SMS_address);
+                        String address_num = PhoneNumberUtils.getStrippedReversed (SMS_address);
+
                         String SMS_body = c.getString(c.getColumnIndexOrThrow("body"));
                         String SMS_read = c.getString(c.getColumnIndex("read"));
                         String SMS_date = c.getString(c.getColumnIndexOrThrow("date"));
@@ -277,11 +278,12 @@ public class MainActivity extends AppCompatActivity {
         diagMsg.setText("Does "+ ContactName + " like you?");
 
         final TextView SMSReceived = (TextView) PopUpDialog.findViewById(R.id.messagesRec);
-        smsRec = getSMSNum("inbox", ContactNumber);
 
-        int smsRecDate = myDeviceDatabase.getSMSReceivedfromNumber(ContactNumber);
+        smsRec = myDeviceDatabase.getSMSFromNumber(ContactNumber, "inbox");
 
-        SMSReceived.setText(Integer.toString(smsRecDate));
+        //myDeviceDatabase.testfunction();
+
+        SMSReceived.setText(Integer.toString(smsRec));
         SMSReceived.setVisibility(View.INVISIBLE);
 
         SMSReceived.postDelayed(new Runnable() {
@@ -292,11 +294,10 @@ public class MainActivity extends AppCompatActivity {
 
 
         final TextView SMSSent = (TextView) PopUpDialog.findViewById(R.id.messagesSent);
-        smsSent = getSMSNum("sent", ContactNumber);
 
-        int smsSendDate = myDeviceDatabase.getSMSSentfromNumber(ContactNumber);
+        smsSent = myDeviceDatabase.getSMSFromNumber(ContactNumber, "sent");
 
-        SMSSent.setText(Integer.toString(smsSendDate));
+        SMSSent.setText(Integer.toString(smsSent));
         SMSSent.setVisibility(View.INVISIBLE);
 
         SMSSent.postDelayed(new Runnable() {
@@ -345,8 +346,6 @@ public class MainActivity extends AppCompatActivity {
         }, 5000);
 
 
-
-
         //set up button
         Button button = (Button) PopUpDialog.findViewById(R.id.okButton);
         button.setOnClickListener(new View.OnClickListener() {
@@ -391,7 +390,7 @@ public class MainActivity extends AppCompatActivity {
     protected int getAvgSMSLength(String boxType, String ContactNumber)
     {
         int avgLength = -1;
-        String[] projection= { "AVG(Length(body))"};
+        String[] projection= { "AVG(Length(" +customDBHelper.TEXTS_COL_BODY + " ))"};
 
         Uri uriSMSURI = Uri.parse("content://sms/"+boxType);
         Cursor cur = getContentResolver().query(uriSMSURI, projection, "address LIKE " + "'%" + ContactNumber + "%'", null, null);
